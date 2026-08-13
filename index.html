@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EnglishQuest Pro - Intégral Phase 4</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { 
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        * { box-sizing: border-box; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const CATEGORIES = [
+          { id: 'contacts', title: 'Premiers Contacts', icon: '🤝', desc: 'Se présenter, Small Talk et réseautage' },
+          { id: 'visitors', title: 'Accueil', icon: '☕', desc: 'Mettre à l\'aise, soins et hospitalité' },
+          { id: 'phone', title: 'Téléphone', icon: '📞', desc: 'Appels, messages, épellation et chiffres' },
+          { id: 'emails', title: 'Emails', icon: '✉️', desc: 'Courriers professionnels et pièces jointes' },
+          { id: 'career', title: 'Parcours Pro', icon: '🎓', desc: 'Études, diplômes, compétences et CV' },
+          { id: 'meetings', title: 'Réunions', icon: '📊', desc: 'Argumenter, interrompre et téléconférences' },
+          { id: 'problems', title: 'Imprévus', icon: '⚠️', desc: 'Malentendus, réclamations et reports' },
+          { id: 'culture', title: 'Savoir-être', icon: '🌍', desc: 'Politesse, diplomatie et nuances indirectes' },
+          { id: 'formal', title: 'Formel vs Informel', icon: '👔', desc: 'Fiche 6 & 22 : Choisir le bon registre' },
+          { id: 'connectors', title: 'Connecteurs logiques', icon: '🔗', desc: 'Annexe 2 : Structurer son argumentation' },
+          { id: 'numbers', title: 'Chiffres & Épellation', icon: '🔢', desc: 'Fiche 21 : Devises, décimales et dates' }
+        ];
+
+        const SPECIAL_MODES = [
+          { id: 'intercultural_tf', title: 'Vrai/Faux Interculturel', icon: '🌐', desc: 'Testez vos connaissances sur les codes culturels du livre' },
+          { id: 'audio_dictation', title: 'Mode Dictée Audio', icon: '🎧', desc: 'Écoutez et tapez les expressions professionnelles dictées' }
+        ];
+
+        const LESSON_DATA = {
+          contacts: [
+            { id: 1, type: 'en_to_fr', question: "Que signifie 'Pleased to meet you.' ?", options: ["Où habitez-vous ?", "Comment allez-vous ?", "Ravi de vous rencontrer.", "À bientôt."], correctAnswer: "Ravi de vous rencontrer.", englishText: "Pleased to meet you." },
+            { id: 2, type: 'fr_to_en', question: "Traduisez : 'Je ne crois pas qu'on se connaisse.'", options: ["I don't think we've met before.", "Who are you?", "Have we talked?", "I don't know you."], correctAnswer: "I don't think we've met before.", englishText: "I don't think we've met before." },
+            { id: 3, type: 'en_to_fr', question: "Que signifie 'What do you do?'", options: ["Que faites-vous dans la vie ?", "Que faites-vous maintenant ?", "Comment allez-vous ?", "Où allez-vous ?"], correctAnswer: "Que faites-vous dans la vie ?", englishText: "What do you do?" },
+            { id: 4, type: 'fr_to_en', question: "Comment dire 'J'ai hâte de vous voir le mois prochain.' ?", options: ["I see you next month.", "I wait to see you.", "I look forward to seeing you next month.", "I hope seeing you."], correctAnswer: "I look forward to seeing you next month.", englishText: "I look forward to seeing you next month." },
+            { id: 5, type: 'en_to_fr', question: "Que signifie 'What do you do in your free time?'", options: ["Où êtes-vous libre ?", "Avez-vous le temps ?", "Quelle heure est-il ?", "Que faites-vous de votre temps libre ?"], correctAnswer: "Que faites-vous de votre temps libre ?", englishText: "What do you do in your free time?" },
+            { id: 6, type: 'fr_to_en', question: "Traduisez : 'Êtes-vous déjà venu à ce salon ?'", options: ["Are you in fair before?", "Did you go to fair?", "Have you been to this trade fair before?", "Do you like trade fairs?"], correctAnswer: "Have you been to this trade fair before?", englishText: "Have you been to this trade fair before?" }
+          ],
+          visitors: [
+            { id: 1, type: 'en_to_fr', question: "Que signifie 'Did you have a good trip?'", options: ["Avez-vous de bons bagages ?", "Avez-vous fait un bon voyage ?", "Où allez-vous ?", "Êtes-vous fatigué ?"], correctAnswer: "Avez-vous fait un bon voyage ?", englishText: "Did you have a good trip?" },
+            { id: 2, type: 'fr_to_en', question: "Traduisez : 'Veuillez vous asseoir.'", options: ["Sit you down.", "Please have a seat.", "Take a chair.", "Sit please."], correctAnswer: "Please have a seat.", englishText: "Please have a seat." },
+            { id: 3, type: 'en_to_fr', question: "Que veut dire 'Can I get you something to drink?'", options: ["Avez-vous soif ?", "Où est le café ?", "Puis-je vous offrir quelque chose à boire ?", "Pouvez-vous me donner à boire ?"], correctAnswer: "Puis-je vous offrir quelque chose à boire ?", englishText: "Can I get you something to drink?" },
+            { id: 4, type: 'fr_to_en', question: "Comment proposer : 'Voulez-vous que je vous appelle un taxi ?'", options: ["Shall I call you a taxi?", "I call taxi?", "You want a taxi?", "Do I telephone taxi?"], correctAnswer: "Shall I call you a taxi?", englishText: "Shall I call you a taxi?" }
+          ],
+          phone: [
+            { id: 1, type: 'fr_to_en', question: "Traduisez : 'Pourrais-je parler à Meryl, s'il vous plaît ?'", options: ["I want Meryl.", "Could I speak to Meryl, please?", "Give me Meryl.", "Meryl is here?"], correctAnswer: "Could I speak to Meryl, please?", englishText: "Could I speak to Meryl, please?" },
+            { id: 2, type: 'en_to_fr', question: "Que signifie 'Who's calling please?'", options: ["Qui appelez-vous ?", "Où êtes-vous ?", "Qui est à l'appareil s'il vous plaît ?", "Pourquoi appelez-vous ?"], correctAnswer: "Qui est à l'appareil s'il vous plaît ?", englishText: "Who's calling please?" },
+            { id: 3, type: 'fr_to_en', question: "Traduisez : 'Je crains que la ligne soit très mauvaise.'", options: ["The line is bad.", "I'm afraid the line is very bad.", "Telephone is not good.", "Sorry for the line."], correctAnswer: "I'm afraid the line is very bad.", englishText: "I'm afraid the line is very bad." }
+          ],
+          emails: [
+            { id: 1, type: 'fr_to_en', question: "Comment écrire : 'Je vous écris concernant...'", options: ["I write for...", "I am writing in connection with...", "My email is about...", "I write to you about..."], correctAnswer: "I am writing in connection with...", englishText: "I am writing in connection with..." },
+            { id: 2, type: 'en_to_fr', question: "Que signifie 'Please find attached the sales figures.'", options: ["Les chiffres de vente sont bons.", "Veuillez trouver ci-joint les chiffres de vente.", "Regardez les ventes.", "Les chiffres sont attachés."], correctAnswer: "Veuillez trouver ci-joint les chiffres de vente.", englishText: "Please find attached the sales figures." }
+          ],
+          career: [
+            { id: 1, type: 'fr_to_en', question: "Traduisez : 'J'ai un diplôme de Master.'", options: ["I have a Master.", "I am Master degree.", "I hold a Master's degree.", "My diploma is Master."], correctAnswer: "I hold a Master's degree.", englishText: "I hold a Master's degree." },
+            { id: 2, type: 'en_to_fr', question: "Que signifie 'I am a team player.' ?", options: ["Je joue dans une équipe.", "J'aime le sport.", "Je suis le capitaine.", "J'ai l'esprit d'équipe."], correctAnswer: "J'ai l'esprit d'équipe.", englishText: "I am a team player." }
+          ],
+          meetings: [
+            { id: 1, type: 'fr_to_en', question: "Traduisez : 'À mon avis...'", options: ["To my idea...", "For my thought...", "In my opinion...", "To my head..."], correctAnswer: "In my opinion...", englishText: "In my opinion..." }
+          ],
+          problems: [
+            { id: 1, type: 'fr_to_en', question: "Comment demander : 'Pardon, avez-vous dit 13 ou 30 ?'", options: ["You said 13 or 30?", "Sorry, did you say 13 or 30?", "Repeat 13 or 30?", "13 or 30?"], correctAnswer: "Sorry, did you say 13 or 30?", englishText: "Sorry, did you say 13 or 30?" }
+          ],
+          culture: [
+            { id: 1, type: 'fr_to_en', question: "Comment demander poliment : 'Cela vous dérangerait-il de prendre mes appels ?'", options: ["Take my calls?", "Would you mind taking my phone calls?", "Do you take calls?", "Please phone calls."], correctAnswer: "Would you mind taking my phone calls?", englishText: "Would you mind taking my phone calls?" }
+          ],
+          formal: [
+            { id: 1, type: 'en_to_fr', question: "Quelle est l'alternative formelle de 'ASAP' ?", options: ["As soon as possible", "Quickly", "Right now", "At once"], correctAnswer: "As soon as possible", englishText: "As soon as possible." }
+          ],
+          connectors: [
+            { id: 1, type: 'en_to_fr', question: "Que signifie 'However' dans une phrase ?", options: ["Par conséquent", "Cependant / Néanmoins", "De plus", "Bien que"], correctAnswer: "Cependant / Néanmoins", englishText: "However, it is going to be difficult." }
+          ],
+          numbers: [
+            { id: 1, type: 'en_to_fr', question: "Comment lit-on le montant '£3.15' ?", options: ["three pounds fifteen", "three point fifteen pounds", "three fifteen pounds", "fifteen pounds three"], correctAnswer: "three pounds fifteen", englishText: "three pounds fifteen" }
+          ]
+        };
+
+        const INTERCULTURAL_DATA = [
+          { id: 1, statement: "Dans la culture finlandaise, le silence au cours d'une conversation est perçu comme naturel et agréable.", isTrue: true, explanation: "Exact ! Contrairement aux cultures latines, les Finlandais apprécient le silence et respectent l'interlocuteur en l'écoutant sans l'interrompre." },
+          { id: 2, statement: "En France, la hiérarchie est généralement beaucoup plus souple et informelle que dans les pays anglo-saxons.", isTrue: false, explanation: "Faux ! Le livre souligne que la France a des hiérarchies plutôt marquées, héritées de son histoire." }
+        ];
+
+        const DICTATION_DATA = [
+          { id: 1, textToDictate: "Pleased to meet you", hint: "Ravi de vous rencontrer (Premiers contacts)" },
+          { id: 2, textToDictate: "Could I speak to Meryl, please?", hint: "Demander quelqu'un au téléphone" }
+        ];
+
+        function EnglishLearningApp() {
+          const [screen, setScreen] = useState('grow_intro'); 
+          const [growStep, setGrowStep] = useState(1);
+          const [growData, setGrowData] = useState({ goal: '', time: '15 min/jour' });
+
+          const [selectedCategory, setSelectedCategory] = useState(null);
+          const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+          const [selectedOption, setSelectedOption] = useState(null);
+          const [feedback, setFeedback] = useState(null);
+          const [lives, setLives] = useState(3);
+          const [score, setScore] = useState(0);
+
+          const [tfIndex, setTfIndex] = useState(0);
+          const [tfAnswered, setTfAnswered] = useState(false);
+
+          const [dictIndex, setDictIndex] = useState(0);
+          const [userInput, setUserInput] = useState('');
+          const [dictFeedback, setDictFeedback] = useState(null);
+
+          const currentQuestions = selectedCategory ? LESSON_DATA[selectedCategory] : [];
+          const currentQuestion = currentQuestions[currentQuestionIndex];
+          const progressPercentage = screen === 'playing' && currentQuestions.length > 0 ? ((currentQuestionIndex) / currentQuestions.length) * 100 : 0;
+
+          const playAudio = (text) => {
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              const utterance = new SpeechSynthesisUtterance(text);
+              utterance.lang = 'en-US';
+              utterance.rate = 0.9;
+              window.speechSynthesis.speak(utterance);
+            }
+          };
+
+          useEffect(() => {
+            if (screen === 'playing' && currentQuestion && currentQuestion.type === 'en_to_fr' && feedback === null) {
+                playAudio(currentQuestion.englishText);
+            }
+          }, [currentQuestionIndex, screen, feedback, currentQuestion]);
+
+          const startGame = (categoryId) => {
+            setSelectedCategory(categoryId);
+            setCurrentQuestionIndex(0);
+            setSelectedOption(null);
+            setFeedback(null);
+            setLives(3);
+            setScore(0);
+            setScreen('playing');
+          };
+
+          const startInterculturalMode = () => {
+            setTfIndex(0);
+            setTfAnswered(false);
+            setLives(3);
+            setScore(0);
+            setScreen('intercultural');
+          };
+
+          const startDictationMode = () => {
+            setDictIndex(0);
+            setUserInput('');
+            setDictFeedback(null);
+            setLives(3);
+            setScore(0);
+            setScreen('dictation');
+            playAudio(DICTATION_DATA[0].textToDictate);
+          };
+
+          const goHome = () => {
+            setScreen('start');
+            setSelectedCategory(null);
+          };
+
+          const handleOptionClick = (option) => {
+            if (feedback !== null) return;
+            setSelectedOption(option);
+            if (currentQuestion.type === 'fr_to_en') {
+              playAudio(option);
+            }
+          };
+
+          const handleCheck = () => {
+            if (!selectedOption) return;
+            if (selectedOption === currentQuestion.correctAnswer) {
+              setFeedback('correct');
+              setScore(score + 20);
+              playAudio(currentQuestion.englishText);
+            } else {
+              setFeedback('incorrect');
+              setLives(lives - 1);
+              if (lives - 1 <= 0) {
+                setTimeout(() => setScreen('lost'), 1500);
+              }
+            }
+          };
+
+          const handleNext = () => {
+            if (currentQuestionIndex + 1 < currentQuestions.length) {
+              setCurrentQuestionIndex(currentQuestionIndex + 1);
+              setSelectedOption(null);
+              setFeedback(null);
+            } else {
+              setScreen('won');
+            }
+          };
+
+          const handleTrueFalse = (choice) => {
+            if (tfAnswered) return;
+            setTfAnswered(true);
+            const currentItem = INTERCULTURAL_DATA[tfIndex];
+            if (choice === currentItem.isTrue) {
+              setScore(score + 25);
+            } else {
+              setLives(lives - 1);
+              if (lives - 1 <= 0) {
+                setTimeout(() => setScreen('lost'), 2000);
+              }
+            }
+          };
+
+          const handleDictationCheck = () => {
+            const currentItem = DICTATION_DATA[dictIndex];
+            const cleanUser = userInput.trim().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+            const cleanTarget = currentItem.textToDictate.trim().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+
+            if (cleanUser === cleanTarget) {
+              setDictFeedback('correct');
+              setScore(score + 30);
+            } else {
+              setDictFeedback('incorrect');
+              setLives(lives - 1);
+              if (lives - 1 <= 0) {
+                setTimeout(() => setScreen('lost'), 2000);
+              }
+            }
+          };
+
+          if (screen === 'grow_intro') {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-indigo-800 to-blue-900 flex flex-col items-center justify-center p-4 sm:p-6 text-white w-full">
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-white/20 shadow-2xl mx-auto">
+                  <div className="text-center mb-6">
+                    <span className="bg-amber-400 text-gray-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Fiche 1 : Méthode GROW</span>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold mt-3">Plan de réussite</h1>
+                    <p className="text-xs sm:text-sm text-blue-200 mt-1">Coaching professionnel (Katja Ingman)</p>
+                  </div>
+
+                  {growStep === 1 && (
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold mb-2 text-yellow-300">1. G | GOAL — Quel est votre objectif positif ?</h3>
+                      <p className="text-xs text-blue-100 mb-4">Ex: "Je veux me débrouiller pour..."</p>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Je veux réussir mes réunions..." 
+                        value={growData.goal}
+                        onChange={(e) => setGrowData({...growData, goal: e.target.value})}
+                        className="w-full p-3 sm:p-4 rounded-xl bg-white/20 border border-white/30 text-white placeholder-blue-300 focus:outline-none mb-6 text-sm sm:text-base font-semibold"
+                      />
+                      <button 
+                        onClick={() => { if(growData.goal) setGrowStep(2); }}
+                        disabled={!growData.goal}
+                        className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all text-sm sm:text-base ${!growData.goal ? 'bg-gray-500 opacity-50 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-400 text-gray-900 cursor-pointer shadow-md'}`}
+                      >
+                        Continuer ➔
+                      </button>
+                    </div>
+                  )}
+
+                  {growStep === 2 && (
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold mb-2 text-yellow-300">2. W | WILL — Votre temps disponible ?</h3>
+                      <p className="text-xs text-blue-100 mb-4">Plusieurs séances courtes valent mieux qu'une longue.</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                        {['10 min/jour', '15 min/jour', '30 min/jour', '1h par semaine'].map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => setGrowData({...growData, time: t})}
+                            className={`p-3 sm:p-4 rounded-xl font-bold border-2 transition-all cursor-pointer text-sm sm:text-base ${growData.time === t ? 'bg-amber-500 border-amber-600 text-gray-900 shadow-lg' : 'bg-white/10 border-white/20 text-white'}`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                      <button 
+                        onClick={() => setScreen('start')}
+                        className="w-full py-3 sm:py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold transition-all cursor-pointer shadow-lg text-sm sm:text-base"
+                      >
+                        Démarrer l'application 🚀
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          if (screen === 'start') {
+            return (
+              <div className="min-h-screen bg-gradient-to-b from-blue-700 to-blue-900 flex flex-col items-center justify-start p-4 sm:p-8 text-white w-full">
+                <div className="text-5xl sm:text-6xl mb-2 mt-4 animate-bounce">💼</div>
+                <h1 className="text-2xl sm:text-4xl font-extrabold mb-1 tracking-tight text-center">EnglishQuest Pro</h1>
+                <p className="text-xs sm:text-sm mb-6 font-medium text-blue-200 text-center max-w-md px-2">
+                  Objectif : <i>"{growData.goal}"</i> ({growData.time})
+                </p>
+                
+                <div className="w-full max-w-4xl mb-6">
+                  <h2 className="text-base sm:text-lg font-bold mb-3 text-yellow-300 flex items-center px-1">
+                    <span className="mr-2">🚀</span> Modes Spéciaux (Interculturel & Dictée)
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {SPECIAL_MODES.map(mode => (
+                      <button
+                        key={mode.id}
+                        onClick={() => mode.id === 'intercultural_tf' ? startInterculturalMode() : startDictationMode()}
+                        className="bg-gradient-to-r from-amber-500 to-yellow-500 text-gray-900 rounded-2xl p-4 text-left shadow-lg hover:scale-[1.01] transition-all border-b-4 border-amber-700 font-bold flex items-center space-x-4 cursor-pointer"
+                      >
+                        <div className="text-2xl sm:text-3xl flex-shrink-0">{mode.icon}</div>
+                        <div>
+                          <h3 className="text-base sm:text-lg font-extrabold text-gray-900">{mode.title}</h3>
+                          <p className="text-xs text-gray-800 font-medium">{mode.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-full max-w-4xl mb-8">
+                  <h2 className="text-base sm:text-lg font-bold mb-3 text-blue-200 flex items-center px-1">
+                    <span className="mr-2">📚</span> Modules Professionnels (Fiches 1 à 24)
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {CATEGORIES.map(cat => (
+                      <button 
+                        key={cat.id}
+                        onClick={() => startGame(cat.id)}
+                        className="bg-white text-gray-800 rounded-xl p-4 text-left shadow-md hover:-translate-y-0.5 transition-all border-b-4 border-gray-300 flex items-center space-x-3 cursor-pointer"
+                      >
+                        <div className="text-2xl sm:text-3xl flex-shrink-0">{cat.icon}</div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm sm:text-base font-bold text-blue-900 truncate">{cat.title}</h3>
+                          <p className="text-xs text-gray-500 line-clamp-1">{cat.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (screen === 'won') {
+            return (
+              <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4 sm:p-6 w-full">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl max-w-md w-full text-center border-b-8 border-green-200 mx-4">
+                  <div className="text-6xl sm:text-7xl mb-4">🏆</div>
+                  <h1 className="text-2xl sm:text-4xl font-extrabold text-green-600 mb-2">Session Validée !</h1>
+                  <p className="text-gray-600 mb-6 font-medium text-sm sm:text-base">Vous progressez vers votre objectif GROW.</p>
+                  <button 
+                    onClick={goHome}
+                    className="w-full py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-base sm:text-lg border-b-4 border-blue-800 transition-all cursor-pointer"
+                  >
+                    Menu Principal
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          if (screen === 'lost') {
+            return (
+              <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center p-4 sm:p-6 w-full">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl max-w-md w-full text-center border-b-8 border-red-200 mx-4">
+                  <div className="text-6xl sm:text-7xl mb-4">💔</div>
+                  <h1 className="text-2xl sm:text-4xl font-extrabold text-red-500 mb-2">Plus de vies !</h1>
+                  <p className="text-gray-600 mb-6 font-medium text-sm sm:text-base">La pratique régulière mène au succès.</p>
+                  <button 
+                    onClick={goHome}
+                    className="w-full py-3 sm:py-4 bg-gray-500 hover:bg-gray-400 text-white rounded-2xl font-bold text-base sm:text-lg border-b-4 border-gray-700 transition-all cursor-pointer"
+                  >
+                    Menu Principal
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          if (screen === 'intercultural') {
+            const currentItem = INTERCULTURAL_DATA[tfIndex];
+            const tfProgress = ((tfIndex) / INTERCULTURAL_DATA.length) * 100;
+
+            return (
+              <div className="min-h-screen bg-white flex flex-col font-sans text-gray-800 w-full">
+                <header className="flex items-center justify-between p-4 max-w-4xl w-full mx-auto">
+                  <button onClick={goHome} className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-800 cursor-pointer p-2">← Menu</button>
+                  <div className="flex-1 mx-4 sm:mx-6">
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded-full w-full overflow-hidden">
+                      <div className="h-full bg-amber-500 transition-all duration-500" style={{ width: `${tfProgress}%` }}></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 font-bold text-red-500 text-lg sm:text-xl"><span>❤️</span><span>{lives}</span></div>
+                </header>
+
+                <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-2xl w-full mx-auto text-center">
+                  <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider mb-3">Vrai / Faux Interculturel</span>
+                  <h2 className="text-lg sm:text-2xl font-extrabold mb-6 text-gray-800 px-2">"{currentItem.statement}"</h2>
+
+                  <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-6">
+                    <button onClick={() => handleTrueFalse(true)} disabled={tfAnswered} className="py-4 sm:py-5 bg-green-50 hover:bg-green-100 text-green-700 border-2 border-green-300 rounded-2xl text-base sm:text-xl font-bold cursor-pointer transition-all">VRAI ✅</button>
+                    <button onClick={() => handleTrueFalse(false)} disabled={tfAnswered} className="py-4 sm:py-5 bg-red-50 hover:bg-red-100 text-red-700 border-2 border-red-300 rounded-2xl text-base sm:text-xl font-bold cursor-pointer transition-all">FAUX ❌</button>
+                  </div>
+
+                  {tfAnswered && (
+                    <div className="bg-blue-50 border-2 border-blue-200 p-4 sm:p-6 rounded-2xl w-full text-left mb-6 mx-2">
+                      <h4 className="font-extrabold text-blue-900 mb-1 text-sm sm:text-base">Explication :</h4>
+                      <p className="text-blue-800 text-xs sm:text-sm">{currentItem.explanation}</p>
+                    </div>
+                  )}
+
+                  {tfAnswered && (
+                    <button onClick={() => { if (tfIndex + 1 < INTERCULTURAL_DATA.length) { setTfIndex(tfIndex + 1); setTfAnswered(false); } else { setScreen('won'); } }} className="w-full max-w-md py-3 sm:py-4 bg-blue-600 text-white rounded-2xl font-bold cursor-pointer text-sm sm:text-base shadow-md">Continuer</button>
+                  )}
+                </main>
+              </div>
+            );
+          }
+
+          if (screen === 'dictation') {
+            const currentItem = DICTATION_DATA[dictIndex];
+            const dictProgress = ((dictIndex) / DICTATION_DATA.length) * 100;
+
+            return (
+              <div className="min-h-screen bg-white flex flex-col font-sans text-gray-800 w-full">
+                <header className="flex items-center justify-between p-4 max-w-4xl w-full mx-auto">
+                  <button onClick={goHome} className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-800 cursor-pointer p-2">← Menu</button>
+                  <div className="flex-1 mx-4 sm:mx-6">
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded-full w-full overflow-hidden">
+                      <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${dictProgress}%` }}></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 font-bold text-red-500 text-lg sm:text-xl"><span>❤️</span><span>{lives}</span></div>
+                </header>
+
+                <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-2xl w-full mx-auto text-center">
+                  <span className="bg-blue-100 text-blue-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider mb-2">Mode Dictée Audio</span>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-6 px-2">Indice : {currentItem.hint}</p>
+
+                  <button onClick={() => playAudio(currentItem.textToDictate)} className="mb-6 w-16 h-16 sm:w-20 sm:h-20 bg-blue-600 text-white rounded-3xl shadow-lg flex items-center justify-center text-3xl sm:text-4xl cursor-pointer animate-pulse hover:bg-blue-500 transition-all">🔊</button>
+
+                  <input type="text" value={userInput} onChange={(e) => setUserInput(e.target.value)} disabled={dictFeedback !== null} placeholder="Tapez ce que vous entendez..." className="w-full max-w-md p-3 sm:p-4 border-2 border-gray-300 rounded-2xl text-base sm:text-lg font-bold text-center mb-6 focus:outline-none focus:border-blue-500" />
+
+                  {dictFeedback !== null && (
+                    <div className={`p-4 rounded-2xl w-full max-w-md mb-6 font-bold text-center text-sm sm:text-base ${dictFeedback === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {dictFeedback === 'correct' ? '✓ Parfait !' : `✗ Réponse : "${currentItem.textToDictate}"`}
+                    </div>
+                  )}
+
+                  <button onClick={dictFeedback === null ? handleDictationCheck : () => { if (dictIndex + 1 < DICTATION_DATA.length) { setDictIndex(dictIndex + 1); setUserInput(''); setDictFeedback(null); playAudio(DICTATION_DATA[dictIndex + 1].textToDictate); } else { setScreen('won'); } }} className="w-full max-w-md py-3 sm:py-4 bg-blue-600 text-white rounded-2xl font-bold cursor-pointer text-sm sm:text-base shadow-md">
+                    {dictFeedback === null ? 'Vérifier' : 'Continuer'}
+                  </button>
+                </main>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen bg-white flex flex-col font-sans text-gray-800 w-full">
+              <header className="flex items-center justify-between p-4 max-w-4xl w-full mx-auto">
+                <button onClick={goHome} className="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-800 cursor-pointer p-2">← Menu</button>
+                <div className="flex-1 mx-4 sm:mx-6">
+                  <div className="h-3 sm:h-4 bg-gray-200 rounded-full w-full overflow-hidden">
+                    <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${progressPercentage}%` }}></div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 font-bold text-red-500 text-lg sm:text-xl"><span>❤️</span><span>{lives}</span></div>
+              </header>
+
+              <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-3xl w-full mx-auto">
+                <h2 className="text-xl sm:text-3xl font-extrabold mb-6 sm:mb-8 text-center text-gray-800 px-2 leading-snug">{currentQuestion.question}</h2>
+                
+                {currentQuestion.type === 'en_to_fr' && (
+                  <button onClick={() => playAudio(currentQuestion.englishText)} className="mb-6 sm:mb-8 w-14 h-14 sm:w-16 sm:h-16 bg-blue-500 text-white rounded-2xl shadow flex items-center justify-center text-2xl sm:text-3xl cursor-pointer hover:bg-blue-400 transition-all" title="Écouter">🔊</button>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+                  {currentQuestion.options.map((option, index) => {
+                    let btnStyle = "p-4 sm:p-5 border-2 rounded-2xl text-base sm:text-lg font-bold transition-all text-center flex items-center justify-center min-h-[64px] sm:min-h-[70px] ";
+                    if (feedback === null) {
+                      btnStyle += selectedOption === option ? "border-blue-400 bg-blue-50 text-blue-600 shadow-inner" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer shadow-sm";
+                    } else {
+                      if (option === currentQuestion.correctAnswer) btnStyle += "border-green-500 bg-green-50 text-green-600 shadow-sm";
+                      else if (selectedOption === option) btnStyle += "border-red-500 bg-red-50 text-red-600 shadow-sm";
+                      else btnStyle += "border-gray-200 bg-gray-50 text-gray-400 opacity-50";
+                    }
+                    return <button key={index} onClick={() => handleOptionClick(option)} className={btnStyle} disabled={feedback !== null}>{option}</button>;
+                  })}
+                </div>
+              </main>
+
+              <footer className={`p-4 sm:p-6 mt-auto border-t-2 ${feedback === 'correct' ? 'bg-green-100 border-green-200 text-green-700' : feedback === 'incorrect' ? 'bg-red-100 border-red-200 text-red-700' : 'bg-white border-gray-100'}`}>
+                <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="font-extrabold text-lg sm:text-xl text-center sm:text-left">
+                    {feedback === 'correct' && '✓ Excellent !'}
+                    {feedback === 'incorrect' && `✗ Réponse : ${currentQuestion.correctAnswer}`}
+                  </div>
+                  <button onClick={feedback === null ? handleCheck : handleNext} disabled={!selectedOption && feedback === null} className="w-full sm:w-48 px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-white rounded-xl font-bold text-base cursor-pointer shadow-md transition-all">
+                    {feedback === null ? 'Vérifier' : 'Continuer'}
+                  </button>
+                </div>
+              </footer>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EnglishLearningApp />);
+    </script>
+</body>
+</html>
